@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Forecast {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  latitude  Float
+  longitude Float
+  data      Data[]
+
+  // Composite unique constraint
+  @@unique([latitude, longitude])
+}
+
+model GeofencedRecommendation {
+  id               Int       @id @default(autoincrement())
+  latitude         Float     // Latitude of the location
+  longitude        Float     // Longitude of the location
+  condtion         String    // Soil Condition
+  radiusMeters     Int       // Geofencing radius in meters
+  
+  // JSON fields to store the OpenAI recommendation and forecast data
+  outputWaktu       Json      // Stores outputWaktu JSON data
+  outputTanaman  Json      // Stores outputTanaman JSON data
+  outputPrakiraan  Json      // Stores outputPrakiraan JSON data
+  outputRingkasanSatuSiklus Json //Stores summary one cicle JSON data
+  outputRingkasanMingguanBulan1 Json //Stores  summary month n JSON data
+  outputRingkasanMingguanBulan2 Json //Stores  summary month n+1 JSON data
+  outputRingkasanMingguanBulan3 Json //Stores  summary month n+2 JSON data
+  outputRingkasanMingguanBulan4 Json //Stores  summary month n+3 JSON data
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([latitude, longitude])
+}
+
+model Data {
+  id                                Int              @id @default(autoincrement())
+  totalPrecipitation4Months         Float
+  weeklySums                        Float[]  
+  startDate                         DateTime 
+  endDate                           DateTime 
+  forecast_id                       Int      
+  forecast                          Forecast         @relation(fields: [forecast_id], references: [id], onDelete: Cascade)
+  
+  @@index([forecast_id])
+}
